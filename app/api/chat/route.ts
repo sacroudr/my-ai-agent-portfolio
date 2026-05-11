@@ -4,6 +4,7 @@ import { embedQuery } from "@/lib/rag/embed";
 import { retrieveRelevantChunks } from "@/lib/rag/retrieve";
 import { buildSystemPrompt } from "@/lib/rag/systemPrompt";
 import { detectLanguage } from "@/lib/detectLanguage";
+import { getOrCreateSession, logMessage } from "@/lib/db/helpers";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -15,10 +16,17 @@ const anthropic = new Anthropic({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, language: clientLanguage } = body;
+    const { messages, sessionId } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "No messages provided" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (!sessionId || typeof sessionId !== "string") {
+      return new Response(JSON.stringify({ error: "No sessionId provided" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -34,25 +42,34 @@ export async function POST(req: NextRequest) {
 
     const userQuery = lastMessage.content as string;
 
-    // Detect language
-    const language: "fr" | "en" =
-      clientLanguage === "fr" || clientLanguage === "en"
-        ? clientLanguage
-        : detectLanguage(userQuery);
+    // Detect language from the latest user message
+    const language: "fr" | "en" = detectLanguage(userQuery);
+
+    // Ensure session exists in DB
+    await getOrCreateSession(sessionId, language);
+
+    // Log the user message
+    await logMessage({
+      sessionId,
+      role: "user",
+      content: userQuery,
+      language,
+    });
 
     // RAG pipeline
     const queryEmbedding = await embedQuery(userQuery);
     const relevantChunks = await retrieveRelevantChunks(queryEmbedding);
     const systemPrompt = buildSystemPrompt(relevantChunks, language);
 
-    // Build message history for Claude
-    // Claude uses "user" and "assistant" roles — same as our app
+    // Build Claude message history
     const claudeMessages = messages.map((msg: { role: string; content: string }) => ({
       role: msg.role as "user" | "assistant",
       content: msg.content,
     }));
 
-    // Stream from Claude
+    // Accumulate full response for logging after streaming
+    let fullResponse = "";
+
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -71,12 +88,21 @@ export async function POST(req: NextRequest) {
             ) {
               const text = chunk.delta.text;
               if (text) {
+                fullResponse += text;
                 controller.enqueue(
                   encoder.encode(`0:${JSON.stringify(text)}\n`)
                 );
               }
             }
           }
+
+          // Log the complete assistant response after streaming
+          await logMessage({
+            sessionId,
+            role: "assistant",
+            content: fullResponse,
+            language,
+          });
 
           controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`));
           controller.close();

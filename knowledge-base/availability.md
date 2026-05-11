@@ -31,5 +31,6 @@ Riad is **actively available** — open to both CDI (permanent employment) and f
 
 ## How to Reach Him
 - **Email:** sacroudr@gmail.com
+- **Phone:** +33 7 80 71 38 08
 - **GitHub:** github.com/sacroudr
 - **LinkedIn:** linkedin.com/in/riad-sacroud-7a5b73166

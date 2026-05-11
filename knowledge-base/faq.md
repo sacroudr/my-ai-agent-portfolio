@@ -45,4 +45,4 @@ Ideally a product company or scale-up where he can contribute to something real 
 Yes — and this is one of his strengths. He learned Spring Boot (an entirely different ecosystem from his usual JS/TS stack) from scratch and shipped a production-grade app with authentication, security, and audit logging. He is currently learning RAG architecture and vector databases for his AI portfolio project. His approach: understand the mental model first, then apply it fast. He won't pretend to already know something he doesn't — but he will learn it.
 
 ## "How do I contact him?"
-Email: sacroudr@gmail.com — best channel, he responds promptly. Also on GitHub: github.com/sacroudr and LinkedIn: linkedin.com/in/riad-sacroud-7a5b73166.
+Email: sacroudr@gmail.com — best channel, he responds promptly. Phone: +33 7 80 71 38 08. Also on GitHub: github.com/sacroudr and LinkedIn: linkedin.com/in/riad-sacroud-7a5b73166.

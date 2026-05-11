@@ -1,38 +1,48 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap');
 
+/* ── Dark mode (default) ─────────────────────────────────────────────── */
 :root {
-  /* Core palette */
-  --bg-base: #0e0e0f;
-  --bg-elevated: #161618;
-  --bg-subtle: #1c1c1f;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
-
-  /* Accent — electric amber */
-  --accent: #f0a500;
-  --accent-dim: rgba(240, 165, 0, 0.12);
-  --accent-glow: rgba(240, 165, 0, 0.25);
-
-  /* Text */
-  --text-primary: #f0ede8;
-  --text-secondary: rgba(240, 237, 232, 0.55);
-  --text-muted: rgba(240, 237, 232, 0.3);
-
-  /* Status */
-  --green: #4ade80;
-  --green-glow: rgba(74, 222, 128, 0.2);
-
-  /* Typography */
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-  --font-body: 'Outfit', sans-serif;
-
-  /* Spacing */
-  --panel-width: 300px;
+  color-scheme: dark;
+  --bg-base: #09090b;
+  --bg-elevated: #111113;
+  --bg-subtle: #18181b;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --accent: #06B6D4;
+  --accent-dim: rgba(6, 182, 212, 0.08);
+  --accent-glow: rgba(6, 182, 212, 0.20);
+  --text-primary: #FAFAFA;
+  --text-secondary: rgba(250, 250, 250, 0.60);
+  --text-muted: rgba(250, 250, 250, 0.28);
+  --green: #34D399;
+  --green-glow: rgba(52, 211, 153, 0.18);
   --radius: 12px;
   --radius-sm: 8px;
+  --panel-width: 300px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --font-body: 'Outfit', system-ui, sans-serif;
 }
 
+/* ── Light mode ──────────────────────────────────────────────────────── */
+:root.light {
+  color-scheme: light;
+  --bg-base: #F4F4F5;
+  --bg-elevated: #FFFFFF;
+  --bg-subtle: #E4E4E7;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.10);
+  --accent: #0891B2;
+  --accent-dim: rgba(8, 145, 178, 0.08);
+  --accent-glow: rgba(8, 145, 178, 0.20);
+  --text-primary: #09090B;
+  --text-secondary: rgba(9, 9, 11, 0.60);
+  --text-muted: rgba(9, 9, 11, 0.30);
+  --green: #059669;
+  --green-glow: rgba(5, 150, 105, 0.18);
+}
+
+/* ── Reset ───────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -51,9 +61,18 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease;
 }
 
-/* Grain overlay */
+/* ── Theme transitions ───────────────────────────────────────────────── */
+/* Smooth color swaps on every element when .light is toggled on :root.  */
+/* Only transitions color-related properties — does not affect transform  */
+/* or opacity animations, which use `animation:` not `transition:`.       */
+* {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ── Grain overlay ───────────────────────────────────────────────────── */
 body::before {
   content: '';
   position: fixed;
@@ -64,44 +83,82 @@ body::before {
   z-index: 9999;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* Animations */
+/* ── Keyframes ───────────────────────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 var(--green-glow); }
-  50% { box-shadow: 0 0 0 6px transparent; }
+  0%,  100% { box-shadow: 0 0 0 0 var(--green-glow); }
+  50%        { box-shadow: 0 0 0 6px transparent; }
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50%       { opacity: 0; }
 }
 
 @keyframes typing-dot {
   0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
+  40%            { transform: scale(1);   opacity: 1; }
 }
 
-/* Entry animations */
+@keyframes pulse-record {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.35); opacity: 0.6; }
+}
+
+@keyframes ambient-pulse {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -60%) scale(1); }
+  50%       { opacity: 0.8; transform: translate(-50%, -60%) scale(1.08); }
+}
+
+/* ── Base interactive element defaults ───────────────────────────────── */
+button { cursor: pointer; }
+a      { cursor: pointer; }
+
+/* ── Keyboard focus rings ────────────────────────────────────────────── */
+/* Visible only when navigating with keyboard/tab — not on mouse click.  */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Remove the default browser outline only when we have replaced it.     */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────── */
+/* Respect the OS "reduce motion" preference. Collapses all CSS          */
+/* animations and transitions to instant so no motion occurs.            */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Entry animation utilities ───────────────────────────────────────── */
 .animate-slide-left {
   animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

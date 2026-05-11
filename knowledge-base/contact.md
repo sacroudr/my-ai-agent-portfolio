@@ -2,6 +2,7 @@
 
 ## Direct Contact
 - **Email:** sacroudr@gmail.com
+- **Phone:** +33 7 80 71 38 08
 - **GitHub:** github.com/sacroudr
 - **LinkedIn:** linkedin.com/in/riad-sacroud-7a5b73166
 - **Location:** Serris (77700), Seine-et-Marne, Île-de-France (open to anywhere in France + remote)
