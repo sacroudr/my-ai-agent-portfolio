@@ -44,16 +44,19 @@ export async function logMessage({
   role,
   content,
   language,
+  tokensUsed = 0,
 }: {
   sessionId: string;
   role: "user" | "assistant";
   content: string;
   language: "fr" | "en";
+  tokensUsed?: number;
 }): Promise<void> {
   await db.insert(chatMessages).values({
     sessionId,
     role,
     content,
     language,
+    tokensUsed,
   });
 }

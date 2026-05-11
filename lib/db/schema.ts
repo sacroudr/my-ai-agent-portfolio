@@ -76,6 +76,9 @@ export const chatMessages = pgTable("chat_messages", {
   // Language this message was written/responded in
   language: text("language", { enum: ["fr", "en"] }).default("en").notNull(),
 
+  // Token used for the request
+  tokensUsed: integer("tokens_used").default(0),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

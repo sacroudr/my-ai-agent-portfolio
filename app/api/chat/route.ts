@@ -96,12 +96,17 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Log the complete assistant response after streaming
+          // Get token usage from the completed stream
+          const finalMessage = await claudeStream.finalMessage();
+          const tokensUsed = finalMessage.usage.input_tokens + finalMessage.usage.output_tokens;
+
+          // Log the complete assistant response with token count
           await logMessage({
             sessionId,
             role: "assistant",
             content: fullResponse,
             language,
+            tokensUsed,
           });
 
           controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`));
