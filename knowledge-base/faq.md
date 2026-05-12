@@ -41,6 +41,9 @@ Yes, actively. He is currently building an RAG pipeline using pgvector, Voyage A
 ## "What kind of company is he looking for?"
 Ideally a product company or scale-up where he can contribute to something real and grow alongside strong engineers. Open to startups, ESNs with interesting technical challenges, and international teams.
 
+## "Does he have any hobbies or interests outside of work?"
+Yes. Riad goes to the gym regularly, plays video games, reads books and manga, and builds side projects for fun. The side projects habit is particularly telling — when he's not working, he's still building things, just without deadlines. That's where a lot of his portfolio came from.
+
 ## "Can he work with a stack he doesn't already know?"
 Yes — and this is one of his strengths. He learned Spring Boot (an entirely different ecosystem from his usual JS/TS stack) from scratch and shipped a production-grade app with authentication, security, and audit logging. He is currently learning RAG architecture and vector databases for his AI portfolio project. His approach: understand the mental model first, then apply it fast. He won't pretend to already know something he doesn't — but he will learn it.
 

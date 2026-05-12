@@ -174,3 +174,13 @@ a      { cursor: pointer; }
 .animate-fade-up.delay-4 { animation-delay: 0.4s; }
 .animate-fade-up.delay-5 { animation-delay: 0.5s; }
 .animate-fade-up.delay-6 { animation-delay: 0.6s; }
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+@keyframes bar-grow {
+  from { width: 0; }
+  to   { width: var(--bar-width, 100%); }
+}
