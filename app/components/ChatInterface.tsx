@@ -829,8 +829,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import LeftPanel from "./LeftPanel";
 import MessageBubble, { Message } from "./MessageBubble";
+import LeftPanel from "./LeftPanel";
 
 const WELCOME_MESSAGE = "Hi, I'm Riad's AI. Ask me anything about his work, stack, or availability — in English or French.";
 
@@ -841,12 +841,32 @@ export default function ChatInterface() {
   const [isMobile, setIsMobile] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const recognitionRef = useRef<any>(null);
   const sessionIdRef = useRef<string>("");
+
+
+  // ── Theme: read localStorage → fall back to system prefers-color-scheme ──
+  useEffect(() => {
+    const saved = localStorage.getItem("ai-portfolio-theme");
+    if (saved === "light") {
+      document.documentElement.classList.add("light");
+      setTheme("light");
+    } else if (saved === "dark") {
+      // Explicit dark preference — keep default
+    } else {
+      // No saved preference — mirror the OS setting
+      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+      if (prefersLight) {
+        document.documentElement.classList.add("light");
+        setTheme("light");
+      }
+    }
+  }, []);
 
   // Session ID
   useEffect(() => {
@@ -887,6 +907,17 @@ export default function ChatInterface() {
     }
   }, [input]);
 
+  //   // ── Theme toggle ───────────────────────────────────────────────────────
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    if (next === "light") {
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+    }
+    localStorage.setItem("ai-portfolio-theme", next);
+  };
   // Speech recognition toggle
   const toggleListening = () => {
     if (isListening) {
@@ -1073,7 +1104,9 @@ export default function ChatInterface() {
 
       {/* Left panel */}
       {!isMobile && (
-        <LeftPanel onSuggestedQuestion={(q) => sendMessage(q)} />
+        <LeftPanel onSuggestedQuestion={(q) => sendMessage(q)}
+          theme={theme}
+          onToggleTheme={toggleTheme} />
       )}
 
       {/* Chat area */}
