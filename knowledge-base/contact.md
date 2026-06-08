@@ -1,5 +1,10 @@
 # Contact & Links
 
+## Schedule a Call
+Riad is available for 30-minute calls via Google Meet. Recruiters and collaborators can book a slot directly at:
+https://cal.com/riad-sacroud-betpsz/30min
+The meeting is automatically created as a Google Meet video call — no back-and-forth needed.
+
 ## Direct Contact
 - **Email:** sacroudr@gmail.com
 - **Phone:** +33 7 80 71 38 08
