@@ -1,8 +1,7 @@
-import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db/helpers";
 import { chatSessions, chatMessages } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
@@ -13,7 +12,7 @@ async function isAuthenticated() {
 // Claude Haiku pricing (per 1k tokens)
 const COST_PER_1K_TOKENS = 0.00025;
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   if (!await isAuthenticated()) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }

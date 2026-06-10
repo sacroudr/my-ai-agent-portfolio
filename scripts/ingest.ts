@@ -160,8 +160,9 @@ async function clearAndInsert(
 
       inserted++;
       console.log(`   ✓ [${inserted}/${chunks.length}] ${chunk.sourceFile}[${chunk.chunkIndex}]`);
-    } catch (err: any) {
-      console.error(`   ✗ FAILED on ${chunk.sourceFile}[${chunk.chunkIndex}]: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`   ✗ FAILED on ${chunk.sourceFile}[${chunk.chunkIndex}]: ${message}`);
       throw err; // Stop on first failure so we can see the exact error
     }
   }
@@ -208,7 +209,8 @@ async function main() {
   console.log("🎉 Done!\n");
 }
 
-main().catch((err) => {
-  console.error("\n❌ Ingestion failed:", err.message);
+main().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error("\n❌ Ingestion failed:", message);
   process.exit(1);
 });

@@ -108,7 +108,9 @@ export async function POST(req: NextRequest) {
 
     // Fire notification email for new sessions — non-blocking
     if (isNewSession) {
-      sendNewSessionNotification(userQuery, language, sessionId);
+      sendNewSessionNotification(userQuery, language, sessionId).catch((err) => {
+        console.error("[/api/chat] sendNewSessionNotification rejected:", err);
+      });
     }
 
     // RAG pipeline
@@ -203,10 +205,11 @@ export async function POST(req: NextRequest) {
         "X-Language": language,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[/api/chat] Error:", err);
+    const message = err instanceof Error ? err.message : "Internal server error";
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

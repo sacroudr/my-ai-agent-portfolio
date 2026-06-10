@@ -89,8 +89,9 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (err: any) {
-    console.error("[/api/contact] Error:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[/api/contact] Error:", message);
     return new Response(
       JSON.stringify({ error: "Failed to send message. Please try again." }),
       { status: 500, headers: { "Content-Type": "application/json" } }

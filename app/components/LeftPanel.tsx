@@ -38,7 +38,10 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
   // createPortal needs document, which only exists in the browser.
   // mounted guards against SSR access to document.body.
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   // Close lightbox on Escape
   useEffect(() => {
@@ -121,6 +124,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
               padding: 1,
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/riad-photo.png"
               alt="Riad Sacroud"
@@ -469,6 +473,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
               animation: "fadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards",
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/riad-photo.png"
               alt="Riad Sacroud"

@@ -5,6 +5,10 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
 
+function errMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 async function test() {
   console.log("\n🔍 Testing DB connection...\n");
 
@@ -23,8 +27,8 @@ async function test() {
   try {
     const result = await sql`SELECT 1 as ping`;
     console.log("\n✅ Raw SQL ping succeeded:", result);
-  } catch (err: any) {
-    console.error("\n❌ Raw SQL ping failed:", err.message);
+  } catch (err: unknown) {
+    console.error("\n❌ Raw SQL ping failed:", errMessage(err));
     process.exit(1);
   }
 
@@ -32,8 +36,8 @@ async function test() {
   try {
     const rows = await db.select().from(kbChunks);
     console.log(`\n✅ kb_chunks query succeeded — current row count: ${rows.length}`);
-  } catch (err: any) {
-    console.error("\n❌ kb_chunks query failed:", err.message);
+  } catch (err: unknown) {
+    console.error("\n❌ kb_chunks query failed:", errMessage(err));
     process.exit(1);
   }
 
@@ -47,8 +51,8 @@ async function test() {
       embedding: Array(1024).fill(0.1), // dummy 1024-dim vector
     });
     console.log("✅ Insert succeeded");
-  } catch (err: any) {
-    console.error("❌ Insert failed:", err.message);
+  } catch (err: unknown) {
+    console.error("❌ Insert failed:", errMessage(err));
     process.exit(1);
   }
 
@@ -61,8 +65,8 @@ async function test() {
     } else {
       console.log("✅ Data is persisting correctly\n");
     }
-  } catch (err: any) {
-    console.error("❌ Verification query failed:", err.message);
+  } catch (err: unknown) {
+    console.error("❌ Verification query failed:", errMessage(err));
   }
 }
 

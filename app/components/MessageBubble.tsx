@@ -58,35 +58,6 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
     .replace(/\[SHOW_CALENDAR\]/g, "")
     .trim();
 
-  if (isUser) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          animation: "fadeUp 0.2s ease-out forwards",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "70%",
-            background: "var(--bg-subtle)",
-            border: "1px solid var(--border-strong)",
-            borderRadius: "var(--radius) var(--radius) 2px var(--radius)",
-            padding: "0.65rem 1rem",
-            fontFamily: "var(--font-body)",
-            fontSize: "0.85rem",
-            color: "var(--text-primary)",
-            lineHeight: 1.6,
-            fontWeight: 300,
-          }}
-        >
-          {message.content}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       style={{

@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db/helpers";
 import { chatSessions, chatMessages } from "@/lib/db/schema";
@@ -38,7 +37,7 @@ function isUnanswered(content: string): boolean {
   return UNANSWERED_SIGNALS.some((signal) => lower.includes(signal));
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   if (!await isAuthenticated()) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }

@@ -1,7 +1,6 @@
 import { drizzle } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
-import { kbChunks } from "../db/schema";
 
 const TOP_K = 4; // Number of chunks to retrieve per query
 
@@ -38,7 +37,7 @@ export async function retrieveRelevantChunks(
     LIMIT ${TOP_K}
   `);
 
-  return results.rows.map((row: any) => ({
+  return (results.rows as Array<Record<string, unknown>>).map((row) => ({
     content: row.content as string,
     sourceFile: row.source_file as string,
     chunkIndex: row.chunk_index as number,

@@ -7,6 +7,37 @@ import ExportButton from "./ExportButton";
 
 const WELCOME_MESSAGE = "Hi, I'm Riad's AI. Ask me anything about his work, stack, or availability — in English or French.";
 
+// Minimal Web Speech API shape — typed locally because TS lib.dom doesn't ship it.
+interface SpeechRecognitionResultLike {
+  readonly isFinal: boolean;
+  readonly 0: { readonly transcript: string };
+}
+interface SpeechRecognitionEventLike {
+  readonly resultIndex: number;
+  readonly results: ArrayLike<SpeechRecognitionResultLike>;
+}
+interface SpeechRecognitionErrorEventLike {
+  readonly error: string;
+}
+interface SpeechRecognitionInstance {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+interface SpeechWindow {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+}
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -20,7 +51,7 @@ export default function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const sessionIdRef = useRef<string>("");
 
   //  ── Theme: read localStorage → fall back to system prefers-color-scheme ──
@@ -28,6 +59,7 @@ export default function ChatInterface() {
     const saved = localStorage.getItem("ai-portfolio-theme");
     if (saved === "light") {
       document.documentElement.classList.add("light");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTheme("light");
     } else if (saved === "dark") {
       // Explicit dark preference — keep default
@@ -75,6 +107,7 @@ export default function ChatInterface() {
           sessionStorage.setItem("portfolio_session_id", parsed.sessionId);
 
           // Mark all as not streaming
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setMessages(parsed.messages.map((m) => ({ ...m, isStreaming: false })));
 
           // Restore detected language
@@ -94,6 +127,7 @@ export default function ChatInterface() {
   // Speech API support check
   useEffect(() => {
     const supported = "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSpeechSupported(supported);
   }, []);
 
@@ -152,8 +186,8 @@ export default function ChatInterface() {
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const w = window as unknown as SpeechWindow;
+    const SpeechRecognition = w.SpeechRecognition || w.webkitSpeechRecognition;
 
     if (!SpeechRecognition) return;
 
@@ -189,11 +223,12 @@ export default function ChatInterface() {
       finalTranscript = "";
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
+        const result = event.results[i];
+        const transcript = result[0].transcript;
+        if (result.isFinal) {
           finalTranscript += transcript;
         } else {
           interim += transcript;
@@ -210,7 +245,7 @@ export default function ChatInterface() {
       }
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
       console.error("Speech recognition error:", event.error);
       setIsListening(false);
     };
@@ -343,8 +378,8 @@ export default function ChatInterface() {
           m.id === assistantId ? { ...m, isStreaming: false } : m
         )
       );
-    } catch (err: any) {
-      if (err.name === "AbortError") return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
@@ -355,7 +390,7 @@ export default function ChatInterface() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, conversationLanguage]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -440,7 +475,8 @@ export default function ChatInterface() {
                 border: "1px solid var(--border-strong)",
                 overflow: "hidden", flexShrink: 0,
               }}>
-                <img src="/avatar.jpg" alt="Riad Sacroud" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/riad-photo.png" alt="Riad Sacroud" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
               <div>
                 <p style={{ fontFamily: "var(--font-display)", fontSize: "0.95rem", color: "var(--text-primary)" }}>
