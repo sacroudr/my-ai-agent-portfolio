@@ -72,22 +72,22 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
   if (status === "success") {
     return (
       <div style={{
-        marginTop: "0.75rem",
-        padding: "1rem 1.25rem",
-        background: "rgba(52, 211, 153, 0.06)",
-        border: "1px solid rgba(52, 211, 153, 0.25)",
+        marginTop: "var(--space-3)",
+        padding: "var(--space-4) var(--space-4)",
+        background: "var(--green-dim)",
+        border: "1px solid var(--green-border)",
         borderRadius: "var(--radius)",
         display: "flex",
         alignItems: "center",
-        gap: "0.6rem",
+        gap: "var(--space-2)",
       }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true">
           <polyline points="20 6 9 17 4 12" />
         </svg>
         <p style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.72rem",
-          color: "#34D399",
+          fontSize: "var(--text-xs)",
+          color: "var(--green)",
           lineHeight: 1.5,
         }}>
           {l.success}
@@ -98,20 +98,20 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
 
   return (
     <div style={{
-      marginTop: "0.75rem",
-      padding: "1.25rem",
+      marginTop: "var(--space-3)",
+      padding: "var(--space-5)",
       background: "var(--bg-elevated)",
       border: "1px solid var(--border-strong)",
       borderRadius: "var(--radius)",
       display: "flex",
       flexDirection: "column",
-      gap: "1rem",
+      gap: "var(--space-4)",
     }}>
       {/* Header */}
-      <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
+      <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: "var(--space-3)" }}>
         <p style={{
           fontFamily: "var(--font-display)",
-          fontSize: "0.95rem",
+          fontSize: "var(--text-md)",
           color: "var(--text-primary)",
           marginBottom: "0.2rem",
         }}>
@@ -119,7 +119,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
         </p>
         <p style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.6rem",
+          fontSize: "var(--text-2xs)",
           color: "var(--text-muted)",
           letterSpacing: "0.04em",
         }}>
@@ -132,7 +132,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
         {/* Name */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
           <label style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+            fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
             color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase",
           }}>
             {l.name}
@@ -149,7 +149,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
               borderRadius: "var(--radius-sm)",
               padding: "0.55rem 0.75rem",
               fontFamily: "var(--font-body)",
-              fontSize: "0.78rem",
+              fontSize: "var(--text-sm)",
               color: "var(--text-primary)",
               outline: "none",
               transition: "border-color 0.2s ease, box-shadow 0.2s ease",
@@ -169,7 +169,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
         {/* Email */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
           <label style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+            fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
             color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase",
           }}>
             {l.email}
@@ -186,7 +186,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
               borderRadius: "var(--radius-sm)",
               padding: "0.55rem 0.75rem",
               fontFamily: "var(--font-body)",
-              fontSize: "0.78rem",
+              fontSize: "var(--text-sm)",
               color: "var(--text-primary)",
               outline: "none",
               transition: "border-color 0.2s ease, box-shadow 0.2s ease",
@@ -207,7 +207,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
       {/* Message */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
         <label style={{
-          fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+          fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
           color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase",
         }}>
           {l.message}
@@ -224,7 +224,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
             borderRadius: "var(--radius-sm)",
             padding: "0.55rem 0.75rem",
             fontFamily: "var(--font-body)",
-            fontSize: "0.78rem",
+            fontSize: "var(--text-sm)",
             color: "var(--text-primary)",
             outline: "none",
             resize: "none",
@@ -246,8 +246,8 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
       {/* Error */}
       {status === "error" && (
         <p style={{
-          fontFamily: "var(--font-mono)", fontSize: "0.65rem",
-          color: "#EF4444", letterSpacing: "0.04em",
+          fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)",
+          color: "var(--red)", letterSpacing: "0.04em",
         }}>
           {l.error}
         </p>
@@ -264,7 +264,7 @@ export default function ContactForm({ language, onSuccess }: ContactFormProps) {
           borderRadius: "var(--radius-sm)",
           padding: "0.65rem 1.25rem",
           fontFamily: "var(--font-mono)",
-          fontSize: "0.7rem",
+          fontSize: "var(--text-xs)",
           letterSpacing: "0.08em",
           color: name && email && message && status !== "sending"
             ? "var(--bg-base)" : "var(--text-muted)",

@@ -49,6 +49,7 @@ export default function ChatInterface() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -139,9 +140,18 @@ export default function ChatInterface() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // Auto scroll
+  // Auto scroll — only follow the stream when the user is already near the
+  // bottom, so scrolling up to re-read isn't yanked back down on every token.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scrollContainerRef.current;
+    if (!el) {
+      messagesEndRef.current?.scrollIntoView();
+      return;
+    }
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    if (nearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    }
   }, [messages]);
 
   // Persist messages to localStorage whenever they change
@@ -419,10 +429,10 @@ export default function ChatInterface() {
         {/* Desktop header — only shows when there are messages */}
         {!isMobile && messages.length > 0 && (
           <div style={{
-            padding: "0.65rem 2rem",
+            padding: "var(--space-2) var(--space-6)",
             borderBottom: "1px solid var(--border)",
             display: "flex", alignItems: "center", justifyContent: "flex-end",
-            gap: "0.5rem",
+            gap: "var(--space-2)",
             background: "var(--bg-base)", flexShrink: 0,
           }}>
             {/* New conversation */}
@@ -437,13 +447,13 @@ export default function ChatInterface() {
               style={{
                 display: "flex", alignItems: "center", gap: "0.4rem",
                 background: "transparent", border: "1px solid var(--border-strong)",
-                borderRadius: "var(--radius-sm)", padding: "0.35rem 0.75rem",
-                fontFamily: "var(--font-mono)", fontSize: "0.62rem",
+                borderRadius: "var(--radius-sm)", padding: "0.4rem var(--space-3)",
+                fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)",
                 letterSpacing: "0.06em", color: "var(--text-muted)",
-                cursor: "pointer", transition: "all 0.15s ease", whiteSpace: "nowrap",
+                cursor: "pointer", transition: "all var(--dur-fast) ease", whiteSpace: "nowrap",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "var(--border-strong)";
+                e.currentTarget.style.borderColor = "var(--accent-border)";
                 e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
@@ -464,12 +474,12 @@ export default function ChatInterface() {
         {/* Mobile header */}
         {isMobile && (
           <div style={{
-            padding: "1rem 1.25rem",
+            padding: "var(--space-4) var(--space-4)",
             borderBottom: "1px solid var(--border)",
             display: "flex", alignItems: "center", justifyContent: "space-between",
             background: "var(--bg-elevated)", flexShrink: 0,
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
                 border: "1px solid var(--border-strong)",
@@ -479,25 +489,65 @@ export default function ChatInterface() {
                 <img src="/riad-photo.png" alt="Riad Sacroud" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
               <div>
-                <p style={{ fontFamily: "var(--font-display)", fontSize: "0.95rem", color: "var(--text-primary)" }}>
+                <p style={{ fontFamily: "var(--font-display)", fontSize: "var(--text-md)", color: "var(--text-primary)" }}>
                   Riad Sacroud
                 </p>
-                <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   AI Portfolio · EN / FR
                 </p>
               </div>
             </div>
-            <ExportButton messages={messages} language={conversationLanguage} />
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+              {/* Theme toggle — the only theme control reachable on mobile,
+                  since the LeftPanel (which holds it on desktop) is hidden. */}
+              <button
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                title={theme === "dark" ? "Light mode" : "Dark mode"}
+                style={{
+                  width: 40, height: 40, borderRadius: "var(--radius-sm)",
+                  background: "transparent", border: "1px solid var(--border-strong)",
+                  color: "var(--text-muted)", display: "flex",
+                  alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  transition: "color var(--dur-fast) ease, border-color var(--dur-fast) ease",
+                }}
+              >
+                {theme === "dark" ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="4" />
+                    <line x1="12" y1="2" x2="12" y2="4" />
+                    <line x1="12" y1="20" x2="12" y2="22" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="2" y1="12" x2="4" y2="12" />
+                    <line x1="20" y1="12" x2="22" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                  </svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                )}
+              </button>
+              <ExportButton messages={messages} language={conversationLanguage} />
+            </div>
           </div>
         )}
 
         {/* Messages */}
-        <div style={{
-          flex: 1, overflowY: "auto", padding: "2rem",
-          display: "flex", flexDirection: "column", gap: "1.5rem",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%)",
-        }}>
+        <div
+          ref={scrollContainerRef}
+          role="log"
+          aria-live="polite"
+          aria-relevant="additions text"
+          aria-label="Conversation with Riad's AI"
+          style={{
+            flex: 1, overflowY: "auto", padding: "var(--space-6)",
+            display: "flex", flexDirection: "column", gap: "var(--space-5)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3%, black 97%, transparent 100%)",
+          }}>
           {/* Welcome state */}
           {isEmpty && (
             <div style={{
@@ -508,17 +558,17 @@ export default function ChatInterface() {
             }}>
               <div style={{ textAlign: "center", maxWidth: 420 }}>
                 <p style={{
-                  fontFamily: "var(--font-display)", fontSize: "1.4rem",
+                  fontFamily: "var(--font-display)", fontSize: "var(--text-xl)",
                   color: "var(--text-primary)", lineHeight: 1.4,
-                  marginBottom: "0.75rem", fontStyle: "italic",
+                  marginBottom: "var(--space-3)", fontStyle: "italic",
                 }}>
                   {WELCOME_MESSAGE}
                 </p>
                 <p style={{
-                  fontFamily: "var(--font-mono)", fontSize: "0.65rem",
+                  fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
                   color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase",
                 }}>
-                  Powered by RAG · Claude · pgvector
+                  Stack · Projects · Experience · Availability
                 </p>
               </div>
 
@@ -526,10 +576,11 @@ export default function ChatInterface() {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", justifyContent: "center", maxWidth: 360 }}>
                   {["What's his stack?", "Available for hire?", "His projects?"].map((q, i) => (
                     <button key={i} onClick={() => sendMessage(q)} style={{
-                      background: "transparent", border: "1px solid var(--border)",
-                      borderRadius: "var(--radius-sm)", padding: "0.4rem 0.75rem",
-                      fontFamily: "var(--font-body)", fontSize: "0.75rem",
+                      background: "transparent", border: "1px solid var(--border-strong)",
+                      borderRadius: "var(--radius-sm)", padding: "var(--space-2) var(--space-3)",
+                      fontFamily: "var(--font-body)", fontSize: "var(--text-sm)",
                       color: "var(--text-secondary)", cursor: "pointer",
+                      minHeight: 40,
                     }}>
                       {q}
                     </button>
@@ -569,14 +620,14 @@ export default function ChatInterface() {
         {/* Input */}
         <div
           className="animate-fade-up delay-3"
-          style={{ padding: "1rem 2rem 1.5rem", flexShrink: 0, borderTop: "1px solid var(--border)", background: "var(--bg-base)" }}
+          style={{ padding: "var(--space-4) var(--space-6) var(--space-5)", flexShrink: 0, borderTop: "1px solid var(--border)", background: "var(--bg-base)" }}
         >
           {/* Status indicator — shows agent readiness or user typing state */}
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.4rem",
-            marginBottom: "0.5rem",
+            gap: "var(--space-2)",
+            marginBottom: "var(--space-2)",
             height: "14px",
           }}>
             {isLoading ? (
@@ -588,7 +639,7 @@ export default function ChatInterface() {
                   animation: "pulse-glow 1.5s ease-in-out infinite",
                 }} />
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+                  fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
                   color: "var(--accent)", letterSpacing: "0.06em",
                   animation: "fadeIn 0.3s ease",
                 }}>
@@ -603,7 +654,7 @@ export default function ChatInterface() {
                   background: "var(--text-muted)",
                 }} />
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+                  fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
                   color: "var(--text-muted)", letterSpacing: "0.06em",
                 }}>
                   {conversationLanguage === "fr" ? "Appuyez sur Entrée pour envoyer" : "Press Enter to send"}
@@ -618,7 +669,7 @@ export default function ChatInterface() {
                   animation: "pulse-glow 3s ease-in-out infinite",
                 }} />
                 <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: "0.58rem",
+                  fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)",
                   color: "var(--text-muted)", letterSpacing: "0.06em",
                 }}>
                   {conversationLanguage === "fr" ? "Riad's AI est prêt" : "Riad's AI is ready"}
@@ -628,10 +679,10 @@ export default function ChatInterface() {
           </div>
           <div
             style={{
-              display: "flex", gap: "0.75rem", alignItems: "flex-end",
+              display: "flex", gap: "var(--space-3)", alignItems: "flex-end",
               background: "var(--bg-elevated)", border: "1px solid var(--border-strong)",
-              borderRadius: "var(--radius)", padding: "0.75rem 1rem",
-              transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+              borderRadius: "var(--radius)", padding: "var(--space-3) var(--space-4)",
+              transition: "border-color var(--dur-base) ease, box-shadow var(--dur-base) ease",
             }}
             onFocusCapture={(e) => {
               e.currentTarget.style.borderColor = "var(--accent)";
@@ -648,11 +699,12 @@ export default function ChatInterface() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask something about Riad... / Posez une question sur Riad..."
+              aria-label={conversationLanguage === "fr" ? "Posez une question sur Riad" : "Ask a question about Riad"}
               rows={1}
               disabled={isLoading}
               style={{
                 flex: 1, background: "transparent", border: "none", outline: "none",
-                resize: "none", fontFamily: "var(--font-body)", fontSize: "0.85rem",
+                resize: "none", fontFamily: "var(--font-body)", fontSize: "var(--text-base)",
                 color: "var(--text-primary)", lineHeight: 1.6,
                 minHeight: "1.6em", maxHeight: "120px", overflowY: "auto",
               }}
@@ -663,15 +715,17 @@ export default function ChatInterface() {
               <button
                 onClick={toggleListening}
                 disabled={isLoading}
+                aria-label={isListening ? "Stop listening" : "Speak your question"}
+                aria-pressed={isListening}
                 title={isListening ? "Stop listening" : "Speak your question"}
                 style={{
-                  width: 34, height: 34,
+                  width: isMobile ? 44 : 38, height: isMobile ? 44 : 38,
                   borderRadius: "var(--radius-sm)",
-                  background: isListening ? "rgba(239, 68, 68, 0.12)" : "transparent",
-                  border: isListening ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid var(--border)",
+                  background: isListening ? "var(--red-dim)" : "transparent",
+                  border: isListening ? "1px solid var(--red-border)" : "1px solid var(--border-strong)",
                   cursor: isLoading ? "default" : "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  flexShrink: 0, transition: "all 0.2s ease",
+                  flexShrink: 0, transition: "all var(--dur-base) ease",
                 }}
                 onMouseEnter={(e) => {
                   if (!isLoading && !isListening) {
@@ -681,7 +735,7 @@ export default function ChatInterface() {
                 }}
                 onMouseLeave={(e) => {
                   if (!isListening) {
-                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.borderColor = "var(--border-strong)";
                     e.currentTarget.style.background = "transparent";
                   }
                 }}
@@ -689,12 +743,12 @@ export default function ChatInterface() {
                 {isListening ? (
                   <div style={{
                     width: 10, height: 10, borderRadius: "50%",
-                    background: "#EF4444",
+                    background: "var(--red)",
                     animation: "pulse-record 1s ease-in-out infinite",
                   }} />
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                    stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="9" y="2" width="6" height="11" rx="3" />
                     <path d="M19 10a7 7 0 0 1-14 0" />
                     <line x1="12" y1="19" x2="12" y2="22" />
@@ -708,20 +762,21 @@ export default function ChatInterface() {
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || isLoading}
+              aria-label={conversationLanguage === "fr" ? "Envoyer le message" : "Send message"}
               style={{
-                width: 34, height: 34, borderRadius: "var(--radius-sm)",
+                width: isMobile ? 44 : 38, height: isMobile ? 44 : 38, borderRadius: "var(--radius-sm)",
                 background: input.trim() && !isLoading ? "var(--accent)" : "var(--bg-subtle)",
                 border: "none", cursor: input.trim() && !isLoading ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 color: input.trim() && !isLoading ? "var(--bg-base)" : "var(--text-muted)",
-                flexShrink: 0, transition: "all 0.15s ease",
+                flexShrink: 0, transition: "all var(--dur-fast) ease",
               }}
               onMouseEnter={(e) => { if (input.trim() && !isLoading) e.currentTarget.style.transform = "scale(1.05)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
               onMouseDown={(e) => { if (input.trim() && !isLoading) e.currentTarget.style.transform = "scale(0.97)"; }}
               onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
@@ -729,10 +784,13 @@ export default function ChatInterface() {
           </div>
 
           <p style={{
-            fontFamily: "var(--font-mono)", fontSize: "0.58rem", color: "var(--text-muted)",
-            textAlign: "center", marginTop: "0.5rem", letterSpacing: "0.06em",
+            fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)", color: "var(--text-muted)",
+            textAlign: "center", marginTop: "var(--space-2)", letterSpacing: "0.06em",
           }}>
-            Enter to send · Shift+Enter for new line{speechSupported ? " · 🎤 Voice input supported" : ""}
+            {conversationLanguage === "fr"
+              ? "Entrée pour envoyer · Maj+Entrée pour un saut de ligne"
+              : "Enter to send · Shift+Enter for new line"}
+            {speechSupported ? (conversationLanguage === "fr" ? " · Saisie vocale" : " · Voice input") : ""}
           </p>
         </div>
       </main>

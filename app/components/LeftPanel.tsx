@@ -141,7 +141,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
           <h1
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "1.5rem",
+              fontSize: "var(--text-2xl)",
               fontWeight: 400,
               color: "var(--text-primary)",
               lineHeight: 1.1,
@@ -153,7 +153,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
           <p
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.65rem",
+              fontSize: "var(--text-2xs)",
               fontWeight: 300,
               color: "var(--text-muted)",
               letterSpacing: "0.1em",
@@ -169,11 +169,11 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "0.4rem",
-            background: "rgba(52, 211, 153, 0.08)",
-            border: "1px solid rgba(52, 211, 153, 0.22)",
-            borderRadius: "100px",
-            padding: "0.3rem 0.65rem",
+            gap: "var(--space-2)",
+            background: "var(--green-dim)",
+            border: "1px solid var(--green-border)",
+            borderRadius: "var(--radius-pill)",
+            padding: "0.3rem var(--space-2)",
             alignSelf: "flex-start",
           }}
         >
@@ -190,7 +190,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
           <span
             style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.6rem",
+              fontSize: "var(--text-2xs)",
               fontWeight: 400,
               color: "var(--green)",
               letterSpacing: "0.04em",
@@ -212,7 +212,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
         <p
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "0.6rem",
+            fontSize: "var(--text-2xs)",
             fontWeight: 300,
             color: "var(--text-muted)",
             letterSpacing: "0.05em",
@@ -232,7 +232,7 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
         <p
           style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "0.55rem",
+            fontSize: "var(--text-2xs)",
             fontWeight: 500,
             color: "var(--text-muted)",
             letterSpacing: "0.14em",
@@ -254,9 +254,9 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
                 border: "1px solid transparent",
                 borderLeft: `2px solid ${hoveredChip === i ? "var(--accent)" : "var(--border)"}`,
                 borderRadius: "0 var(--radius-sm) var(--radius-sm) 0",
-                padding: "0.45rem 0.65rem",
+                padding: "var(--space-2) var(--space-2)",
                 fontFamily: "var(--font-body)",
-                fontSize: "0.72rem",
+                fontSize: "var(--text-sm)",
                 fontWeight: 400,
                 color: hoveredChip === i ? "var(--text-primary)" : "var(--text-secondary)",
                 cursor: "pointer",
@@ -294,20 +294,20 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
               background: "var(--bg-elevated)",
               border: "1px solid var(--border-strong)",
               borderRadius: "var(--radius-sm)",
-              padding: "0.75rem 1rem",
-              boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.25)",
-              animation: "fadeUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              padding: "var(--space-3) var(--space-4)",
+              boxShadow: "var(--shadow-md)",
+              animation: "fadeUp var(--dur-fast) var(--ease) forwards",
             }}
           >
             {/* Section label */}
             <p style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.52rem",
+              fontSize: "var(--text-2xs)",
               fontWeight: 500,
               color: "var(--text-muted)",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
-              marginBottom: "0.6rem",
+              marginBottom: "var(--space-2)",
             }}>
               Appearance
             </p>
@@ -333,11 +333,11 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
                     background: theme === mode ? "var(--accent-dim)" : "transparent",
                     color: theme === mode ? "var(--accent)" : "var(--text-muted)",
                     fontFamily: "var(--font-mono)",
-                    fontSize: "0.6rem",
+                    fontSize: "var(--text-2xs)",
                     fontWeight: 400,
                     letterSpacing: "0.06em",
                     cursor: theme === mode ? "default" : "pointer",
-                    transition: "all 0.15s ease",
+                    transition: "all var(--dur-fast) ease",
                   }}
                 >
                   {mode === "dark" ? (
@@ -456,10 +456,10 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(0, 0, 0, 0.78)",
+            background: "var(--scrim)",
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
-            animation: "fadeIn 0.2s ease forwards",
+            animation: "fadeIn var(--dur-base) ease forwards",
             cursor: "zoom-out",
           }}
         >
@@ -483,15 +483,15 @@ export default function LeftPanel({ onSuggestedQuestion, theme, onToggleTheme }:
                 borderRadius: "50%",
                 objectFit: "cover",
                 border: "2px solid var(--accent)",
-                boxShadow: "0 0 0 6px var(--accent-dim), 0 32px 80px rgba(0, 0, 0, 0.7)",
+                boxShadow: "0 0 0 6px var(--accent-dim), var(--shadow-lg)",
                 display: "block",
               }}
             />
             <p
               style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: "0.6rem",
-                color: "rgba(255, 255, 255, 0.35)",
+                fontSize: "var(--text-2xs)",
+                color: "var(--on-scrim)",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}

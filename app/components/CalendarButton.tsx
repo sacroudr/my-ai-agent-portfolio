@@ -24,32 +24,32 @@ export default function CalendarButton({ language }: CalendarButtonProps) {
 
   return (
     <div style={{
-      marginTop: "0.75rem",
-      padding: "1rem 1.25rem",
+      marginTop: "var(--space-3)",
+      padding: "var(--space-4) var(--space-4)",
       background: "var(--bg-elevated)",
       border: "1px solid var(--border-strong)",
       borderRadius: "var(--radius)",
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: "1rem",
+      gap: "var(--space-4)",
       flexWrap: "wrap",
     }}>
       {/* Left — icon + text */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
         {/* Calendar icon */}
         <div style={{
           width: 38,
           height: 38,
           borderRadius: "var(--radius-sm)",
           background: "var(--accent-dim)",
-          border: "1px solid rgba(6,182,212,0.2)",
+          border: "1px solid var(--accent-border)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
@@ -61,7 +61,7 @@ export default function CalendarButton({ language }: CalendarButtonProps) {
         <div>
           <p style={{
             fontFamily: "var(--font-mono)",
-            fontSize: "0.78rem",
+            fontSize: "var(--text-sm)",
             color: "var(--text-primary)",
             fontWeight: 500,
             marginBottom: "0.15rem",
@@ -75,7 +75,7 @@ export default function CalendarButton({ language }: CalendarButtonProps) {
             </svg>
             <p style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.6rem",
+              fontSize: "var(--text-2xs)",
               color: "var(--text-muted)",
               letterSpacing: "0.04em",
             }}>
@@ -99,12 +99,12 @@ export default function CalendarButton({ language }: CalendarButtonProps) {
           borderRadius: "var(--radius-sm)",
           padding: "0.55rem 1.1rem",
           fontFamily: "var(--font-mono)",
-          fontSize: "0.7rem",
+          fontSize: "var(--text-xs)",
           letterSpacing: "0.06em",
           color: "var(--bg-base)",
           textDecoration: "none",
           whiteSpace: "nowrap",
-          transition: "all 0.15s ease",
+          transition: "all var(--dur-fast) ease",
           flexShrink: 0,
         }}
         onMouseEnter={(e) => {

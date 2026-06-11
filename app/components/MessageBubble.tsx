@@ -36,9 +36,9 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
             background: "var(--bg-subtle)",
             border: "1px solid var(--border-strong)",
             borderRadius: "var(--radius) var(--radius) 2px var(--radius)",
-            padding: "0.65rem 1rem",
+            padding: "var(--space-2) var(--space-4)",
             fontFamily: "var(--font-body)",
-            fontSize: "0.85rem",
+            fontSize: "var(--text-base)",
             color: "var(--text-primary)",
             lineHeight: 1.6,
             fontWeight: 300,
@@ -83,17 +83,18 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
       <div
         style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.8rem",
+          fontSize: "var(--text-sm)",
           fontWeight: 300,
           color: "var(--text-secondary)",
           lineHeight: 1.8,
-          maxWidth: "85%",
+          maxWidth: "var(--reading-max)",
           wordBreak: "break-word",
         }}
       >
         <MarkdownRenderer text={cleanContent} />
         {message.isStreaming && (
           <span
+            aria-hidden="true"
             style={{
               display: "inline-block",
               width: "1ch",
@@ -111,24 +112,24 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
           <div style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "0.3rem",
-            marginTop: "0.6rem",
-            padding: "0.2rem 0.55rem",
-            borderRadius: "999px",
-            border: `1px solid ${message.confidence === "low" ? "rgba(245,158,11,0.3)" : "rgba(6,182,212,0.2)"}`,
-            background: message.confidence === "low" ? "rgba(245,158,11,0.06)" : "rgba(6,182,212,0.05)",
+            gap: "var(--space-1)",
+            marginTop: "var(--space-2)",
+            padding: "0.2rem var(--space-2)",
+            borderRadius: "var(--radius-pill)",
+            border: `1px solid ${message.confidence === "low" ? "var(--amber-border)" : "var(--accent-border)"}`,
+            background: message.confidence === "low" ? "var(--amber-dim)" : "var(--accent-dim)",
           }}>
             <div style={{
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: message.confidence === "low" ? "#F59E0B" : "var(--accent)",
+              background: message.confidence === "low" ? "var(--amber)" : "var(--accent)",
               opacity: 0.8,
             }} />
             <span style={{
               fontFamily: "var(--font-mono)",
-              fontSize: "0.55rem",
-              color: message.confidence === "low" ? "#F59E0B" : "var(--text-muted)",
+              fontSize: "var(--text-2xs)",
+              color: message.confidence === "low" ? "var(--amber)" : "var(--text-secondary)",
               letterSpacing: "0.06em",
             }}>
               {message.confidence === "low"
@@ -153,10 +154,10 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
                 style={{
                   background: "transparent",
                   border: "1px solid var(--border-strong)",
-                  borderRadius: "999px",
-                  padding: "0.3rem 0.75rem",
+                  borderRadius: "var(--radius-pill)",
+                  padding: "0.3rem var(--space-3)",
                   fontFamily: "var(--font-body)",
-                  fontSize: "0.7rem",
+                  fontSize: "var(--text-xs)",
                   color: "var(--text-secondary)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -209,11 +210,11 @@ function MarkdownRenderer({ text }: { text: string }) {
       elements.push(
         <div key={i} style={{
           fontFamily: "var(--font-display)",
-          fontSize: "1.1rem",
+          fontSize: "var(--text-lg)",
           fontWeight: 400,
           color: "var(--text-primary)",
-          marginBottom: "0.75rem",
-          marginTop: i > 0 ? "1rem" : 0,
+          marginBottom: "var(--space-3)",
+          marginTop: i > 0 ? "var(--space-4)" : 0,
           letterSpacing: "-0.01em",
           lineHeight: 1.3,
         }}>
@@ -226,13 +227,13 @@ function MarkdownRenderer({ text }: { text: string }) {
       elements.push(
         <div key={i} style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.72rem",
+          fontSize: "var(--text-xs)",
           fontWeight: 500,
           color: "var(--accent)",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
-          marginBottom: "0.4rem",
-          marginTop: i > 0 ? "1.25rem" : 0,
+          marginBottom: "var(--space-2)",
+          marginTop: i > 0 ? "var(--space-5)" : 0,
         }}>
           {renderInline(line.slice(3))}
         </div>
@@ -243,13 +244,13 @@ function MarkdownRenderer({ text }: { text: string }) {
       elements.push(
         <div key={i} style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.68rem",
+          fontSize: "var(--text-2xs)",
           fontWeight: 500,
           color: "var(--text-primary)",
           letterSpacing: "0.06em",
           textTransform: "uppercase",
-          marginBottom: "0.35rem",
-          marginTop: i > 0 ? "0.85rem" : 0,
+          marginBottom: "var(--space-1)",
+          marginTop: i > 0 ? "var(--space-3)" : 0,
           opacity: 0.8,
         }}>
           {renderInline(line.slice(4))}
@@ -297,7 +298,7 @@ function MarkdownRenderer({ text }: { text: string }) {
               color: "var(--accent)",
               flexShrink: 0,
               fontFamily: "var(--font-mono)",
-              fontSize: "0.65rem",
+              fontSize: "var(--text-xs)",
               marginTop: "0.1rem",
               minWidth: "1.2rem",
             }}>
@@ -387,8 +388,8 @@ function renderInline(text: string): React.ReactNode {
                 background: "var(--accent-dim)",
                 border: "1px solid var(--accent)",
                 borderRadius: "var(--radius-sm)",
-                padding: "0.3rem 0.65rem",
-                fontSize: "0.75rem",
+                padding: "0.3rem var(--space-2)",
+                fontSize: "var(--text-xs)",
                 textDecoration: "none",
                 borderBottom: "none",
               }}

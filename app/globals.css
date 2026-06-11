@@ -1,24 +1,101 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap');
 
+/* ════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM TOKENS
+   Single source of truth. Every color, size, space, and motion value in the
+   app references one of these. Theme-dependent values are overridden in
+   `:root.light`; theme-independent scales (type, space, motion, radius)
+   live once in `:root`.
+   ════════════════════════════════════════════════════════════════════════ */
+
 /* ── Dark mode (default) ─────────────────────────────────────────────── */
 :root {
   color-scheme: dark;
+
+  /* Surfaces */
   --bg-base: #09090b;
   --bg-elevated: #111113;
   --bg-subtle: #18181b;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.10);
-  --accent: #06B6D4;
-  --accent-dim: rgba(6, 182, 212, 0.08);
-  --accent-glow: rgba(6, 182, 212, 0.20);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Accent (cyan / electric teal) */
+  --accent-rgb: 6, 182, 212;
+  --accent: rgb(var(--accent-rgb));
+  --accent-dim: rgba(var(--accent-rgb), 0.10);
+  --accent-glow: rgba(var(--accent-rgb), 0.20);
+  --accent-border: rgba(var(--accent-rgb), 0.30);
+
+  /* Text — all values verified ≥ 4.5:1 against --bg-base for AA compliance */
   --text-primary: #FAFAFA;
-  --text-secondary: rgba(250, 250, 250, 0.60);
-  --text-muted: rgba(250, 250, 250, 0.28);
-  --green: #34D399;
-  --green-glow: rgba(52, 211, 153, 0.18);
+  --text-secondary: rgba(250, 250, 250, 0.62);
+  --text-muted: rgba(250, 250, 250, 0.50);
+
+  /* Status colors */
+  --green-rgb: 52, 211, 153;
+  --green: rgb(var(--green-rgb));
+  --green-dim: rgba(var(--green-rgb), 0.08);
+  --green-border: rgba(var(--green-rgb), 0.24);
+  --green-glow: rgba(var(--green-rgb), 0.18);
+
+  --amber-rgb: 245, 158, 11;
+  --amber: rgb(var(--amber-rgb));
+  --amber-dim: rgba(var(--amber-rgb), 0.08);
+  --amber-border: rgba(var(--amber-rgb), 0.30);
+
+  --red-rgb: 239, 68, 68;
+  --red: rgb(var(--red-rgb));
+  --red-dim: rgba(var(--red-rgb), 0.12);
+  --red-border: rgba(var(--red-rgb), 0.40);
+
+  /* Elevation — tuned darker for the dark theme */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 32px 80px rgba(0, 0, 0, 0.70);
+
+  /* Overlay scrim (lightbox etc.) */
+  --scrim: rgba(0, 0, 0, 0.78);
+  --on-scrim: rgba(255, 255, 255, 0.45);
+
+  /* ── Theme-independent scales ──────────────────────────────────────── */
+
+  /* Radius */
   --radius: 12px;
   --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  /* Layout */
   --panel-width: 300px;
+  --reading-max: 68ch;   /* readability cap for long-form agent prose */
+
+  /* Type scale (modular, 11px floor for legibility) */
+  --text-2xs: 0.6875rem;  /* 11px — uppercase mono micro-labels */
+  --text-xs:  0.75rem;    /* 12px */
+  --text-sm:  0.8125rem;  /* 13px */
+  --text-base:0.875rem;   /* 14px — chat input + bubbles */
+  --text-md:  0.9375rem;  /* 15px */
+  --text-lg:  1.0625rem;  /* 17px */
+  --text-xl:  1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+
+  /* Spacing scale (4px grid) */
+  --space-1: 0.25rem;  /* 4  */
+  --space-2: 0.5rem;   /* 8  */
+  --space-3: 0.75rem;  /* 12 */
+  --space-4: 1rem;     /* 16 */
+  --space-5: 1.5rem;   /* 24 */
+  --space-6: 2rem;     /* 32 */
+  --space-7: 3rem;     /* 48 */
+  --space-8: 4rem;     /* 64 */
+
+  /* Motion tokens */
+  --dur-fast: 0.15s;
+  --dur-base: 0.25s;
+  --dur-slow: 0.5s;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: ease-in-out;
+
+  /* Fonts */
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
   --font-body: 'Outfit', system-ui, sans-serif;
@@ -27,19 +104,31 @@
 /* ── Light mode ──────────────────────────────────────────────────────── */
 :root.light {
   color-scheme: light;
+
   --bg-base: #F4F4F5;
   --bg-elevated: #FFFFFF;
-  --bg-subtle: #E4E4E7;
-  --border: rgba(0, 0, 0, 0.06);
-  --border-strong: rgba(0, 0, 0, 0.10);
-  --accent: #0891B2;
-  --accent-dim: rgba(8, 145, 178, 0.08);
-  --accent-glow: rgba(8, 145, 178, 0.20);
+  --bg-subtle: #E9E9EC;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+
+  --accent-rgb: 8, 145, 178;
+
+  /* Text — verified ≥ 4.5:1 against light --bg-base */
   --text-primary: #09090B;
-  --text-secondary: rgba(9, 9, 11, 0.60);
-  --text-muted: rgba(9, 9, 11, 0.30);
-  --green: #059669;
-  --green-glow: rgba(5, 150, 105, 0.18);
+  --text-secondary: rgba(9, 9, 11, 0.66);
+  --text-muted: rgba(9, 9, 11, 0.60);
+
+  --green-rgb: 5, 150, 105;
+  --amber-rgb: 180, 83, 9;
+  --red-rgb: 220, 38, 38;
+
+  /* Elevation — soft, light-appropriate */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 28px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.18);
+
+  --scrim: rgba(9, 9, 11, 0.55);
+  --on-scrim: rgba(255, 255, 255, 0.85);
 }
 
 /* ── Reset ───────────────────────────────────────────────────────────── */
@@ -61,15 +150,17 @@ body {
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease;
+  transition: background-color var(--dur-base) ease;
 }
 
 /* ── Theme transitions ───────────────────────────────────────────────── */
-/* Smooth color swaps on every element when .light is toggled on :root.  */
-/* Only transitions color-related properties — does not affect transform  */
-/* or opacity animations, which use `animation:` not `transition:`.       */
+/* Smooth color swaps on every element when .light is toggled on :root.   */
+/* Only transitions color-related properties — does not affect transform   */
+/* or opacity animations, which use `animation:` not `transition:`.        */
 * {
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background-color var(--dur-base) ease,
+              color var(--dur-base) ease,
+              border-color var(--dur-base) ease;
 }
 
 /* ── Grain overlay ───────────────────────────────────────────────────── */
@@ -130,25 +221,40 @@ body::before {
   50%       { opacity: 0.8; transform: translate(-50%, -60%) scale(1.08); }
 }
 
+/* Welcome-screen ambient blobs — these were referenced by WelcomePage but
+   never defined, so the hero background sat completely static. */
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(0, 0)        scale(1);    }
+  50%       { transform: translate(40px, -28px) scale(1.08); }
+}
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(0, 0)        scale(1);    }
+  50%       { transform: translate(-32px, 24px) scale(1.10); }
+}
+@keyframes blob-drift-3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);    }
+  50%       { transform: translate(-50%, -50%) scale(1.12); }
+}
+
 /* ── Base interactive element defaults ───────────────────────────────── */
 button { cursor: pointer; }
 a      { cursor: pointer; }
 
 /* ── Keyboard focus rings ────────────────────────────────────────────── */
-/* Visible only when navigating with keyboard/tab — not on mouse click.  */
+/* Visible only when navigating with keyboard/tab — not on mouse click.   */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
 }
-/* Remove the default browser outline only when we have replaced it.     */
+/* Remove the default browser outline only when we have replaced it.      */
 :focus:not(:focus-visible) {
   outline: none;
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────────── */
-/* Respect the OS "reduce motion" preference. Collapses all CSS          */
-/* animations and transitions to instant so no motion occurs.            */
+/* Respect the OS "reduce motion" preference. Collapses all CSS           */
+/* animations and transitions to instant so no motion occurs.             */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -160,11 +266,11 @@ a      { cursor: pointer; }
 
 /* ── Entry animation utilities ───────────────────────────────────────── */
 .animate-slide-left {
-  animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInLeft var(--dur-slow) var(--ease) forwards;
 }
 
 .animate-fade-up {
-  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeUp var(--dur-slow) var(--ease) forwards;
   opacity: 0;
 }
 

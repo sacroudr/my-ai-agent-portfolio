@@ -70,8 +70,8 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
           width: 500,
           height: 500,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%)",
-          animation: "blob-drift-1 12s ease-in-out infinite",
+          background: "radial-gradient(circle, rgba(var(--accent-rgb), 0.06) 0%, transparent 70%)",
+          animation: "blob-drift-1 12s var(--ease-inout) infinite",
         }} />
         <div style={{
           position: "absolute",
@@ -80,8 +80,8 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
           width: 400,
           height: 400,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(6,182,212,0.04) 0%, transparent 70%)",
-          animation: "blob-drift-2 16s ease-in-out infinite",
+          background: "radial-gradient(circle, rgba(var(--accent-rgb), 0.04) 0%, transparent 70%)",
+          animation: "blob-drift-2 16s var(--ease-inout) infinite",
         }} />
         <div style={{
           position: "absolute",
@@ -91,8 +91,8 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
           width: 600,
           height: 600,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 70%)",
-          animation: "blob-drift-3 20s ease-in-out infinite",
+          background: "radial-gradient(circle, rgba(var(--accent-rgb), 0.03) 0%, transparent 70%)",
+          animation: "blob-drift-3 20s var(--ease-inout) infinite",
         }} />
       </div>
 
@@ -111,7 +111,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
         {/* Label */}
         <div style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.62rem",
+          fontSize: "var(--text-xs)",
           letterSpacing: "0.25em",
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -170,7 +170,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
             borderRadius: "2px",
             padding: "0.8rem 2.2rem",
             fontFamily: "var(--font-mono)",
-            fontSize: "0.72rem",
+            fontSize: "var(--text-xs)",
             letterSpacing: "0.15em",
             textTransform: "uppercase",
             color: "var(--accent)",
@@ -198,7 +198,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
         {/* Hint */}
         <p style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "0.58rem",
+          fontSize: "var(--text-2xs)",
           color: "var(--text-muted)",
           letterSpacing: "0.08em",
           opacity: showCTA ? 0.6 : 0,
