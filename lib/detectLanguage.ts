@@ -17,20 +17,32 @@ const FRENCH_MARKERS = [
   "veut", "connais", "connaît", "travail", "compétences",
   "expérience", "disponible", "pouvez", "avez", "êtes",
   "habite", "cherche", "recherche", "diplôme", "formation",
+  "montre", "montrer", "montrez", "présente", "où",
+  "ce", "cette", "ces", "mon", "ma", "tes", "déployé", "déployer",
 ];
 
 export function detectLanguage(text: string): "fr" | "en" {
   const lowerText = text.toLowerCase();
-  const words = lowerText.split(/\s+/);
+  // Split on whitespace, hyphens, and apostrophes so contractions and
+  // inversions like "as-tu", "qu'est-ce", or "peux-tu" break into their
+  // component words instead of being treated as a single unmatched token.
+  const words = lowerText.split(/[\s'’\-]+/);
 
   let frenchCount = 0;
+  let accentCount = 0;
   for (const word of words) {
     const clean = word.replace(/[^a-zàâäéèêëîïôùûüç]/g, "");
-    if (FRENCH_MARKERS.includes(clean)) {
-      frenchCount++;
-    }
+    if (!clean) continue;
+    if (FRENCH_MARKERS.includes(clean)) frenchCount++;
+    // Accented letters are a strong French signal — but a single one is not
+    // enough (English loanwords like "résumé"/"café" carry accents too).
+    if (/[àâäéèêëîïôùûüç]/.test(clean)) accentCount++;
   }
 
-  // If more than 1 French marker found, treat as French
-  return frenchCount > 1 ? "fr" : "en";
+  // French if: more than one marker, OR an accented word backed by a marker,
+  // OR multiple accented words (which English queries almost never have).
+  if (frenchCount > 1) return "fr";
+  if (accentCount >= 1 && frenchCount >= 1) return "fr";
+  if (accentCount >= 2) return "fr";
+  return "en";
 }

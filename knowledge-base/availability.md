@@ -6,10 +6,10 @@ Riad is **actively available** — open to both CDI (permanent employment) and f
 ## Employment (CDI)
 - **Contract type:** CDI preferred for stability, but open to serious CDD leading to CDI
 - **Role target:** Junior Full-Stack Engineer, Junior Backend Engineer, Junior Frontend Engineer
-- **Location:** Serris (77700), Seine-et-Marne, Île-de-France — open to anywhere in France
+- **Location:** Based in the Île-de-France region (Greater Paris) — open to working anywhere in France
 - **Remote:** Fully open to full remote or hybrid
 - **Salary range:** 39,000 – 42,000€ gross/year (negotiable based on role, company, and location)
-- **Start:** Available quickly
+- **Start:** Available immediately
 
 ## Freelance
 - **Services:** Full-stack web development, landing pages, MVPs, web applications, API development, mobile apps (React Native)

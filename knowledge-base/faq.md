@@ -24,7 +24,7 @@ For CDI positions: **39,000 – 42,000€ gross/year**, depending on the role, c
 Yes, fluently. He can work, communicate, and present in both French and English. He also speaks Arabic natively.
 
 ## "Is he open to relocation?"
-He is currently in Serris (77700), Seine-et-Marne — already in the Île-de-France region, so Paris and surrounding areas require no relocation at all. He is also open to anywhere else in France and fully open to remote work.
+He is based in the Île-de-France region (Greater Paris), so roles in Paris and the surrounding area require no relocation at all. He is also open to working anywhere else in France, and fully open to remote work.
 
 ## "Does he have a degree?"
 Yes. He holds a **Master of Science in Software Engineering** (Diplôme d'Ingénieur) from ISEN Brest — a state-recognized Bac+5 engineering degree, equivalent to a Master's.

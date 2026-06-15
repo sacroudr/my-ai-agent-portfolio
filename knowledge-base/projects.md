@@ -20,6 +20,9 @@ A production-grade URL shortening service with a full analytics layer — not ju
 ### Why It Matters
 This project was designed from the ground up with architecture first — three-table schema, request flow mapping, and middleware structure were all planned before a single line of code was written. It demonstrates Riad's preference for thoughtful engineering over fast hacking.
 
+### Deployment
+LinkPulse is deployed on **Vercel**, with the database hosted on **Neon** (serverless PostgreSQL). Deployment is fully automated through Git: every push to the main branch triggers a Vercel build and release, with environment variables (database URL, auth secrets) managed in the Vercel dashboard. The live demo runs at https://linkpulse-phi.vercel.app.
+
 ---
 
 ## AI Portfolio Agent
@@ -34,6 +37,9 @@ This very application. A conversational AI agent that acts as Riad's interactive
 - On each user query: the query is embedded, a similarity search retrieves the most relevant KB chunks, and these are injected into the LLM context
 - Bilingual: responds in French or English based on the user's language
 - Streaming responses via Vercel AI SDK
+
+### Deployment
+The AI Portfolio Agent is deployed on **Vercel**, running as Next.js serverless functions, with the vector database (Neon PostgreSQL + pgvector) hosted on **Neon**. Pushing to the main branch on GitHub triggers an automatic Vercel build and deployment. The knowledge base is ingested separately via an offline script that chunks the Markdown files, embeds them with Voyage AI, and stores the vectors in Neon.
 
 ---
 
@@ -57,7 +63,7 @@ A full-featured project management and team collaboration platform — think a c
 - React frontend with TypeScript
 - PostgreSQL for data persistence
 - React Native mobile version
-- Deployed on AWS
+- Deployed on **AWS** cloud infrastructure (separate frontend, backend, and database services)
 - Real-time features (notifications + chat) implemented with WebSockets
 
 ---

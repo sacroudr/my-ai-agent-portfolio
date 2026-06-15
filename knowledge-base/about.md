@@ -23,7 +23,6 @@ Outside of work, Riad has a range of interests that reflect his disciplined and 
 - **Building side projects** — when he's not working, he's often building something for fun. This is where he experiments with new stacks, ideas, and tools without the pressure of a deadline. Most of his portfolio projects started this way.
 
 These aren't just hobbies — they reflect who he is: someone who builds things, stays consistent, and is genuinely curious about the world.
-- Currently based in Serris (77700), Seine-et-Marne, Île-de-France
-- Open to opportunities anywhere in France
-- Open to full remote
-- Available for CDI (permanent employment) and freelance missions
+- Based in the Île-de-France region (Greater Paris)
+- Open to opportunities anywhere in France, including fully remote
+- Available immediately for CDI (permanent employment) or freelance missions

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import LeftPanel from "./LeftPanel";
 import MessageBubble, { Message } from "./MessageBubble";
 import ExportButton from "./ExportButton";
+import { detectLanguage } from "@/lib/detectLanguage";
 
 const WELCOME_MESSAGE = "Hi, I'm Riad's AI. Ask me anything about his work, stack, or availability — in English or French.";
 
@@ -390,10 +391,17 @@ export default function ChatInterface() {
       );
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
+      // Show the error in the user's language. conversationLanguage may still
+      // be the default on a first message, so fall back to detecting from the
+      // message the user just sent.
+      const errorLang = conversationLanguage === "fr" ? "fr" : detectLanguage(content);
+      const errorMsg = errorLang === "fr"
+        ? "Une erreur s'est produite. Merci de réessayer dans un instant."
+        : "Something went wrong. Please try again in a moment.";
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
-            ? { ...m, content: "Something went wrong. Please try again.", isStreaming: false }
+            ? { ...m, content: errorMsg, isStreaming: false }
             : m
         )
       );
