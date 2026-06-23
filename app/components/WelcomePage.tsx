@@ -7,6 +7,9 @@ interface WelcomePageProps {
 }
 
 const QUOTE = "I may not have every answer, but I know how to find them.";
+const QUOTE_FR_BEFORE = "Ce n'est pas de tout savoir qui compte, mais de savoir où ";
+const QUOTE_FR_HIGHLIGHT = "chercher";
+const QUOTE_FR_AFTER = " les bonnes réponses.";
 const WORDS = QUOTE.split(" ");
 
 export default function WelcomePage({ onEnter }: WelcomePageProps) {
@@ -147,6 +150,23 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
               {word}
             </span>
           ))}
+        </div>
+
+        {/* French translation */}
+        <div style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(1rem, 2.4vw, 1.3rem)",
+          fontStyle: "italic",
+          color: "var(--text-secondary)",
+          lineHeight: 1.45,
+          letterSpacing: "-0.01em",
+          opacity: showMeta ? 1 : 0,
+          transform: showMeta ? "translateY(0)" : "translateY(10px)",
+          transition: "opacity 0.6s ease, transform 0.6s ease",
+        }}>
+          {QUOTE_FR_BEFORE}
+          <span style={{ color: "var(--accent)" }}>{QUOTE_FR_HIGHLIGHT}</span>
+          {QUOTE_FR_AFTER}
         </div>
 
         {/* Accent line */}
