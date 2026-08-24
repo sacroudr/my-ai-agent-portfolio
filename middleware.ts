@@ -4,14 +4,26 @@ import { Redis } from "@upstash/redis";
 
 // -------------------------------------------------------------------
 // Rate limiter — 10 requests per hour per IP
-// Uses sliding window algorithm for smooth rate limiting
+// Only initialized if Upstash credentials are present.
 // -------------------------------------------------------------------
-const ratelimit = new Ratelimit({
-  redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "1 h"),
-  analytics: true,
-  prefix: "portfolio:ratelimit",
-});
+let ratelimit: Ratelimit | null = null;
+
+try {
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
+    ratelimit = new Ratelimit({
+      redis: Redis.fromEnv(),
+      limiter: Ratelimit.slidingWindow(10, "1 h"),
+      analytics: true,
+      prefix: "portfolio:ratelimit",
+    });
+  }
+} catch (err) {
+  console.error("[middleware] Failed to init rate limiter:", err);
+  ratelimit = null;
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -35,52 +47,63 @@ export async function middleware(req: NextRequest) {
 
   // -------------------------------------------------------------------
   // Rate limiting — only applies to /api/chat
-  // Skip in development to avoid blocking during testing
   // -------------------------------------------------------------------
   if (pathname === "/api/chat") {
     // Bypass rate limiting in development
     if (process.env.NODE_ENV === "development") {
       return NextResponse.next();
     }
-    // Get client IP — works on Vercel, falls back to localhost in dev
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "127.0.0.1";
 
-    const { success, limit, remaining, reset } = await ratelimit.limit(ip);
-
-    if (!success) {
-      const resetDate = new Date(reset);
-      const minutesUntilReset = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
-
-      return new Response(
-        JSON.stringify({
-          error: "rate_limit_exceeded",
-          message: `You've reached the limit of ${limit} messages per hour. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
-          message_fr: `Vous avez atteint la limite de ${limit} messages par heure. Réessayez dans ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
-          reset: reset,
-          remaining: 0,
-        }),
-        {
-          status: 429,
-          headers: {
-            "Content-Type": "application/json",
-            "X-RateLimit-Limit": String(limit),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": String(reset),
-            "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
-          },
-        }
-      );
+    // If the rate limiter isn't available (no creds, or Upstash down),
+    // FAIL OPEN — allow the request rather than crashing the whole app.
+    if (!ratelimit) {
+      return NextResponse.next();
     }
 
-    // Attach remaining count to response headers for debugging
-    const response = NextResponse.next();
-    response.headers.set("X-RateLimit-Limit", String(limit));
-    response.headers.set("X-RateLimit-Remaining", String(remaining));
-    response.headers.set("X-RateLimit-Reset", String(reset));
-    return response;
+    try {
+      const ip =
+        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        req.headers.get("x-real-ip") ||
+        "127.0.0.1";
+
+      const { success, limit, remaining, reset } = await ratelimit.limit(ip);
+
+      if (!success) {
+        const resetDate = new Date(reset);
+        const minutesUntilReset = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
+
+        return new Response(
+          JSON.stringify({
+            error: "rate_limit_exceeded",
+            message: `You've reached the limit of ${limit} messages per hour. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+            message_fr: `Vous avez atteint la limite de ${limit} messages par heure. Réessayez dans ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+            reset: reset,
+            remaining: 0,
+          }),
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "X-RateLimit-Limit": String(limit),
+              "X-RateLimit-Remaining": "0",
+              "X-RateLimit-Reset": String(reset),
+              "Retry-After": String(Math.ceil((reset - Date.now()) / 1000)),
+            },
+          }
+        );
+      }
+
+      const response = NextResponse.next();
+      response.headers.set("X-RateLimit-Limit", String(limit));
+      response.headers.set("X-RateLimit-Remaining", String(remaining));
+      response.headers.set("X-RateLimit-Reset", String(reset));
+      return response;
+    } catch (err) {
+      // Upstash unreachable (e.g. archived DB) — FAIL OPEN.
+      // The chat must keep working even if rate limiting is down.
+      console.error("[middleware] Rate limit check failed, allowing request:", err);
+      return NextResponse.next();
+    }
   }
 
   return NextResponse.next();
