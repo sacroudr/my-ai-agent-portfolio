@@ -2,6 +2,7 @@
 
 import ContactForm from "./ContactForm";
 import CalendarButton from "./CalendarButton";
+import { detectLanguage } from "@/lib/detectLanguage";
 
 export interface Message {
   id: string;
@@ -31,6 +32,9 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
         }}
       >
         <div
+          // The page chrome is English, but message content is not. Marking it
+          // keeps screen readers from reading French in an English voice.
+          lang={detectLanguage(message.content)}
           style={{
             maxWidth: "70%",
             background: "var(--bg-subtle)",
@@ -81,6 +85,9 @@ export default function MessageBubble({ message, onFollowUp }: MessageBubbleProp
 
       {/* Agent text */}
       <div
+        // Prefer the language the server reported via the `l:` frame; fall back
+        // to local detection for restored messages that predate it.
+        lang={message.language ?? detectLanguage(cleanContent)}
         style={{
           fontFamily: "var(--font-mono)",
           fontSize: "var(--text-sm)",

@@ -19,7 +19,7 @@ export const kbChunks = pgTable(
     // Position of this chunk within its source file (0-indexed)
     chunkIndex: integer("chunk_index").notNull(),
 
-    // The vector embedding — 1024 dimensions (Voyage AI voyage-3-lite output size)
+    // The vector embedding — 1024 dimensions (Voyage AI voyage-3 output size)
     embedding: vector("embedding", { dimensions: 1024 }).notNull(),
 
     // When this chunk was indexed (useful for knowing when to re-index)
@@ -59,28 +59,36 @@ export const chatSessions = pgTable("chat_sessions", {
 // Every message exchanged in a session — both user and agent.
 // Stored for potential future features (analytics, conversation history).
 // -------------------------------------------------------------------
-export const chatMessages = pgTable("chat_messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
 
-  // Links to the session this message belongs to
-  sessionId: text("session_id")
-    .notNull()
-    .references(() => chatSessions.sessionId, { onDelete: "cascade" }),
+    // Links to the session this message belongs to
+    sessionId: text("session_id")
+      .notNull()
+      .references(() => chatSessions.sessionId, { onDelete: "cascade" }),
 
-  // "user" = human message, "assistant" = agent response
-  role: text("role", { enum: ["user", "assistant"] }).notNull(),
+    // "user" = human message, "assistant" = agent response
+    role: text("role", { enum: ["user", "assistant"] }).notNull(),
 
-  // The actual message content
-  content: text("content").notNull(),
+    // The actual message content
+    content: text("content").notNull(),
 
-  // Language this message was written/responded in
-  language: text("language", { enum: ["fr", "en"] }).default("en").notNull(),
+    // Language this message was written/responded in
+    language: text("language", { enum: ["fr", "en"] }).default("en").notNull(),
 
-  // Token used for the request
-  tokensUsed: integer("tokens_used").default(0),
+    // Token used for the request
+    tokensUsed: integer("tokens_used").default(0),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    // Postgres does not index foreign keys automatically. The admin transcript
+    // view filters by session_id on every request, so this keeps it off a seq scan.
+    sessionIdIndex: index("chat_messages_session_id_idx").on(table.sessionId),
+  })
+);
 
 // -------------------------------------------------------------------
 // TYPE EXPORTS

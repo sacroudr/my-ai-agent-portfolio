@@ -1,28 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
+import { ADMIN_COOKIE_NAME, isValidAdminToken } from "@/lib/auth";
 
 // -------------------------------------------------------------------
-// Rate limiter — 10 requests per hour per IP
+// Rate limit rules — one sliding window per protected route.
+// Each rule gets its OWN Upstash prefix so the budgets never overlap:
+// exhausting the contact form must not lock a recruiter out of the chat.
+// -------------------------------------------------------------------
+const RATE_LIMIT_RULES = [
+  {
+    path: "/api/chat",
+    limit: 10,
+    window: "1 h" as const,
+    prefix: "portfolio:ratelimit",
+    copy: (limit: number, minutes: number, plural: string) => ({
+      message: `You've reached the limit of ${limit} messages per hour. Please try again in ${minutes} minute${plural}.`,
+      message_fr: `Vous avez atteint la limite de ${limit} messages par heure. Réessayez dans ${minutes} minute${plural}.`,
+    }),
+  },
+  {
+    path: "/api/contact",
+    limit: 3,
+    window: "1 h" as const,
+    prefix: "portfolio:ratelimit:contact",
+    copy: (limit: number, minutes: number, plural: string) => ({
+      message: `You've reached the limit of ${limit} messages per hour. Please try again in ${minutes} minute${plural}.`,
+      message_fr: `Vous avez atteint la limite de ${limit} messages par heure. Réessayez dans ${minutes} minute${plural}.`,
+    }),
+  },
+  {
+    path: "/api/admin/login",
+    limit: 5,
+    window: "15 m" as const,
+    prefix: "portfolio:ratelimit:login",
+    copy: (limit: number, minutes: number, plural: string) => ({
+      message: `Too many login attempts (${limit} max). Please try again in ${minutes} minute${plural}.`,
+      message_fr: `Trop de tentatives de connexion (${limit} max). Réessayez dans ${minutes} minute${plural}.`,
+    }),
+  },
+];
+
+// -------------------------------------------------------------------
+// Rate limiters, keyed by path.
 // Only initialized if Upstash credentials are present.
 // -------------------------------------------------------------------
-let ratelimit: Ratelimit | null = null;
+const ratelimiters = new Map<string, Ratelimit>();
 
 try {
   if (
     process.env.UPSTASH_REDIS_REST_URL &&
     process.env.UPSTASH_REDIS_REST_TOKEN
   ) {
-    ratelimit = new Ratelimit({
-      redis: Redis.fromEnv(),
-      limiter: Ratelimit.slidingWindow(10, "1 h"),
-      analytics: true,
-      prefix: "portfolio:ratelimit",
-    });
+    const redis = Redis.fromEnv();
+    for (const rule of RATE_LIMIT_RULES) {
+      ratelimiters.set(
+        rule.path,
+        new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(rule.limit, rule.window),
+          analytics: true,
+          prefix: rule.prefix,
+        })
+      );
+    }
   }
 } catch (err) {
   console.error("[middleware] Failed to init rate limiter:", err);
-  ratelimit = null;
+  ratelimiters.clear();
 }
 
 export async function middleware(req: NextRequest) {
@@ -37,18 +82,20 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/admin/usage");
 
   if (isProtected) {
-    const token = req.cookies.get("admin_token");
-    const isAuthenticated = token?.value === process.env.ADMIN_PASSWORD;
-    if (!isAuthenticated) {
+    // isValidAdminToken fails closed when ADMIN_PASSWORD is unset — without
+    // that guard a missing env var would authenticate cookie-less requests.
+    if (!isValidAdminToken(req.cookies.get(ADMIN_COOKIE_NAME)?.value)) {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
     return NextResponse.next();
   }
 
   // -------------------------------------------------------------------
-  // Rate limiting — only applies to /api/chat
+  // Rate limiting — applies to any path with a matching rule
   // -------------------------------------------------------------------
-  if (pathname === "/api/chat") {
+  const rule = RATE_LIMIT_RULES.find((r) => r.path === pathname);
+
+  if (rule) {
     // Bypass rate limiting in development
     if (process.env.NODE_ENV === "development") {
       return NextResponse.next();
@@ -56,6 +103,7 @@ export async function middleware(req: NextRequest) {
 
     // If the rate limiter isn't available (no creds, or Upstash down),
     // FAIL OPEN — allow the request rather than crashing the whole app.
+    const ratelimit = ratelimiters.get(rule.path);
     if (!ratelimit) {
       return NextResponse.next();
     }
@@ -71,12 +119,12 @@ export async function middleware(req: NextRequest) {
       if (!success) {
         const resetDate = new Date(reset);
         const minutesUntilReset = Math.ceil((resetDate.getTime() - Date.now()) / 60000);
+        const plural = minutesUntilReset > 1 ? "s" : "";
 
         return new Response(
           JSON.stringify({
             error: "rate_limit_exceeded",
-            message: `You've reached the limit of ${limit} messages per hour. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
-            message_fr: `Vous avez atteint la limite de ${limit} messages par heure. Réessayez dans ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+            ...rule.copy(limit, minutesUntilReset, plural),
             reset: reset,
             remaining: 0,
           }),
@@ -110,5 +158,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/chat"],
+  matcher: ["/admin/:path*", "/api/chat", "/api/contact", "/api/admin/login"],
 };

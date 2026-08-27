@@ -16,6 +16,14 @@ const CHUNK_OVERLAP = 50;
 const KB_DIR = path.join(process.cwd(), "knowledge-base");
 const VOYAGE_API_URL = "https://api.voyageai.com/v1/embeddings";
 const VOYAGE_MODEL = "voyage-3"; // 1024 dimensions
+const EMBEDDING_DIMENSIONS = 1024;
+
+interface EmbeddedChunk {
+  content: string;
+  chunkIndex: number;
+  sourceFile: string;
+  embedding: number[];
+}
 
 // -------------------------------------------------------------------
 // DB
@@ -121,49 +129,73 @@ async function embedChunks(texts: string[]): Promise<number[][]> {
 }
 
 // -------------------------------------------------------------------
-// STEP 4 — Clear + insert one chunk at a time to isolate any failure
+// STEP 4 — Validate every embedding BEFORE touching the table.
+// Nothing is deleted until the whole batch is known good, so a malformed
+// embedding can never leave the live knowledge base partially wiped.
 // -------------------------------------------------------------------
-async function clearAndInsert(
-  chunks: { content: string; chunkIndex: number; sourceFile: string; embedding: number[] }[]
-) {
-  // Clear existing
-  const sourceFiles = [...new Set(chunks.map((c) => c.sourceFile))];
-  console.log("\n🗑  Clearing existing chunks...");
-  for (const sourceFile of sourceFiles) {
-    await db.delete(kbChunks).where(eq(kbChunks.sourceFile, sourceFile));
-  }
-  console.log(`   Cleared ${sourceFiles.length} source files`);
-
-  // Insert one at a time to catch exactly which chunk fails if any
-  console.log(`\n💾 Inserting ${chunks.length} chunks one by one...`);
-  let inserted = 0;
+function validateEmbeddings(chunks: EmbeddedChunk[]) {
+  console.log(`\n🔍 Validating ${chunks.length} embeddings before any write...`);
 
   for (const chunk of chunks) {
-    try {
-      // Explicitly convert embedding to array of numbers
-      const embedding = chunk.embedding.map(Number);
+    // Explicitly convert to numbers, then keep the normalized array
+    const embedding = chunk.embedding.map(Number);
 
-      // Sanity checks
-      if (embedding.length !== 1024) {
-        throw new Error(`Wrong embedding dimensions: ${embedding.length} (expected 1024)`);
+    if (embedding.length !== EMBEDDING_DIMENSIONS) {
+      throw new Error(
+        `${chunk.sourceFile}[${chunk.chunkIndex}]: wrong embedding dimensions: ${embedding.length} (expected ${EMBEDDING_DIMENSIONS})`
+      );
+    }
+    if (embedding.some(isNaN)) {
+      throw new Error(`${chunk.sourceFile}[${chunk.chunkIndex}]: embedding contains NaN values`);
+    }
+
+    chunk.embedding = embedding;
+  }
+
+  console.log(`   ✓ All ${chunks.length} embeddings valid`);
+}
+
+// -------------------------------------------------------------------
+// STEP 5 — Swap one source file at a time: delete that file's rows and
+// immediately re-insert them. The Neon HTTP driver has no multi-statement
+// transaction, so this is the safe alternative — a mid-run failure costs
+// at most one source file instead of the entire knowledge base.
+// Inserts stay one-at-a-time so a failure names the exact chunk.
+// -------------------------------------------------------------------
+async function clearAndInsert(chunks: EmbeddedChunk[]) {
+  const bySourceFile = new Map<string, EmbeddedChunk[]>();
+  for (const chunk of chunks) {
+    const existing = bySourceFile.get(chunk.sourceFile);
+    if (existing) {
+      existing.push(chunk);
+    } else {
+      bySourceFile.set(chunk.sourceFile, [chunk]);
+    }
+  }
+
+  console.log(`\n💾 Swapping ${bySourceFile.size} source file(s), one file at a time...`);
+  let inserted = 0;
+
+  for (const [sourceFile, fileChunks] of bySourceFile) {
+    await db.delete(kbChunks).where(eq(kbChunks.sourceFile, sourceFile));
+
+    for (const chunk of fileChunks) {
+      try {
+        await db.insert(kbChunks).values({
+          content: chunk.content,
+          sourceFile: chunk.sourceFile,
+          chunkIndex: chunk.chunkIndex,
+          embedding: chunk.embedding,
+        });
+
+        inserted++;
+        console.log(`   ✓ [${inserted}/${chunks.length}] ${chunk.sourceFile}[${chunk.chunkIndex}]`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`   ✗ FAILED on ${chunk.sourceFile}[${chunk.chunkIndex}]: ${message}`);
+        console.error(`   ⚠  "${sourceFile}" is now incomplete — re-run ingestion to restore it.`);
+        throw err; // Stop on first failure so we can see the exact error
       }
-      if (embedding.some(isNaN)) {
-        throw new Error(`Embedding contains NaN values`);
-      }
-
-      await db.insert(kbChunks).values({
-        content: chunk.content,
-        sourceFile: chunk.sourceFile,
-        chunkIndex: chunk.chunkIndex,
-        embedding: embedding,
-      });
-
-      inserted++;
-      console.log(`   ✓ [${inserted}/${chunks.length}] ${chunk.sourceFile}[${chunk.chunkIndex}]`);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error(`   ✗ FAILED on ${chunk.sourceFile}[${chunk.chunkIndex}]: ${message}`);
-      throw err; // Stop on first failure so we can see the exact error
     }
   }
 }
@@ -191,10 +223,13 @@ async function main() {
   // Log first embedding to verify format
   console.log(`  First embedding: length=${embeddings[0].length}, sample=[${embeddings[0].slice(0, 3).join(", ")}...]`);
 
-  const chunksWithEmbeddings = allChunks.map((chunk, i) => ({
+  const chunksWithEmbeddings: EmbeddedChunk[] = allChunks.map((chunk, i) => ({
     ...chunk,
     embedding: embeddings[i],
   }));
+
+  // Validate the whole batch first — only then start mutating the table.
+  validateEmbeddings(chunksWithEmbeddings);
 
   await clearAndInsert(chunksWithEmbeddings);
 

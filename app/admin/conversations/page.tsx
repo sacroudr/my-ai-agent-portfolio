@@ -40,6 +40,45 @@ const SkeletonMessage = ({ align }: { align: "left" | "right" }) => (
   </div>
 );
 
+const ErrorPanel = ({ message }: { message: string }) => (
+  <div style={{
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: 12, padding: "3rem",
+    background: "var(--bg-elevated)", border: "1px solid var(--red-border)",
+    borderRadius: "var(--radius)",
+  }}>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <p style={{ fontFamily: "var(--font-display)", fontSize: "1rem", color: "var(--text-primary)" }}>
+      Couldn&apos;t load conversations
+    </p>
+    <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--text-muted)", textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>
+      {message}
+    </p>
+    <button
+      onClick={() => window.location.reload()}
+      style={{
+        background: "transparent", border: "1px solid var(--border-strong)",
+        borderRadius: "var(--radius-sm)", padding: "0.5rem 1.25rem",
+        fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.08em",
+        color: "var(--text-secondary)", cursor: "pointer",
+        transition: "border-color 150ms ease, color 150ms ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "var(--accent)";
+        e.currentTarget.style.color = "var(--accent)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--border-strong)";
+        e.currentTarget.style.color = "var(--text-secondary)";
+      }}
+    >
+      Retry
+    </button>
+  </div>
+);
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("en-GB", {
     day: "2-digit", month: "short", year: "numeric",
@@ -59,24 +98,70 @@ export default function ConversationsPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [search, setSearch] = useState("");
   const [hoveredMsg, setHoveredMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/sessions")
-      .then((r) => r.json())
-      .then((data) => { setSessions(data); setLoadingSessions(false); });
+      .then(async (res) => {
+        // Session expired mid-visit — bounce back to the login page.
+        if (res.status === 401) {
+          window.location.replace("/admin");
+          return null;
+        }
+        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (data === null) return;
+        setSessions(Array.isArray(data) ? data : []);
+        setLoadingSessions(false);
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[admin/conversations] Failed to load sessions:", message);
+        setError(message);
+        setLoadingSessions(false);
+      });
   }, []);
 
   const loadMessages = async (sessionId: string) => {
     setSelected(sessionId);
     setLoadingMessages(true);
-    const res = await fetch(`/api/admin/sessions/${sessionId}/messages`);
-    const data = await res.json();
-    setMessages(data);
-    setLoadingMessages(false);
+    setMessagesError(null);
+    try {
+      const res = await fetch(`/api/admin/sessions/${sessionId}/messages`);
+      if (res.status === 401) {
+        window.location.replace("/admin");
+        return;
+      }
+      if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+      const data = await res.json();
+      setMessages(Array.isArray(data) ? data : []);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("[admin/conversations] Failed to load messages:", message);
+      setMessages([]);
+      setMessagesError(message);
+    } finally {
+      setLoadingMessages(false);
+    }
   };
 
   const filtered = sessions.filter(s =>
     !search || (s.firstMessage || "").toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (error) return (
+    <AdminShell>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", color: "var(--text-primary)", lineHeight: 1.2 }}>
+          Conversations
+        </h1>
+        <div style={{ height: 1, background: "var(--border)", marginTop: 16 }} />
+      </div>
+      <ErrorPanel message={error} />
+    </AdminShell>
   );
 
   return (
@@ -289,6 +374,12 @@ export default function ConversationsPage() {
                     <SkeletonMessage align="right" />
                     <SkeletonMessage align="left" />
                   </>
+                ) : messagesError ? (
+                  <div style={{ textAlign: "center", padding: "3rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--red)", lineHeight: 1.6 }}>
+                    Couldn&apos;t load this conversation
+                    <br />
+                    <span style={{ color: "var(--text-muted)" }}>{messagesError}</span>
+                  </div>
                 ) : messages.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "3rem", fontFamily: "var(--font-mono)", fontSize: "0.65rem", color: "var(--text-muted)" }}>
                     No messages in this session

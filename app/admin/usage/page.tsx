@@ -24,6 +24,45 @@ const SkeletonCard = () => (
   </div>
 );
 
+const ErrorPanel = ({ message }: { message: string }) => (
+  <div style={{
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: 12, padding: "3rem",
+    background: "var(--bg-elevated)", border: "1px solid var(--red-border)",
+    borderRadius: "var(--radius)",
+  }}>
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <p style={{ fontFamily: "var(--font-display)", fontSize: "1rem", color: "var(--text-primary)" }}>
+      Couldn&apos;t load token usage
+    </p>
+    <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--text-muted)", textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>
+      {message}
+    </p>
+    <button
+      onClick={() => window.location.reload()}
+      style={{
+        background: "transparent", border: "1px solid var(--border-strong)",
+        borderRadius: "var(--radius-sm)", padding: "0.5rem 1.25rem",
+        fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.08em",
+        color: "var(--text-secondary)", cursor: "pointer",
+        transition: "border-color 150ms ease, color 150ms ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "var(--accent)";
+        e.currentTarget.style.color = "var(--accent)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--border-strong)";
+        e.currentTarget.style.color = "var(--text-secondary)";
+      }}
+    >
+      Retry
+    </button>
+  </div>
+);
+
 interface StatCardProps {
   label: string;
   value: string;
@@ -65,11 +104,30 @@ export default function UsagePage() {
   const [hoveredSlice, setHoveredSlice] = useState<string | null>(null);
   const [sliceTooltip, setSliceTooltip] = useState<{ x: number; y: number; sessionId: string; tokens: number } | null>(null);
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/usage")
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false); });
+      .then(async (res) => {
+        // Session expired mid-visit — bounce back to the login page.
+        if (res.status === 401) {
+          window.location.replace("/admin");
+          return null;
+        }
+        if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+        return res.json();
+      })
+      .then((d) => {
+        if (d === null) return;
+        setData(d);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error("[admin/usage] Failed to load usage:", message);
+        setError(message);
+        setLoading(false);
+      });
   }, []);
 
   if (loading) return (
@@ -81,6 +139,18 @@ export default function UsagePage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
         <SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard />
       </div>
+    </AdminShell>
+  );
+
+  if (error) return (
+    <AdminShell>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem", color: "var(--text-primary)", lineHeight: 1.2 }}>
+          Token Usage
+        </h1>
+        <div style={{ height: 1, background: "var(--border)", marginTop: 16 }} />
+      </div>
+      <ErrorPanel message={error} />
     </AdminShell>
   );
 

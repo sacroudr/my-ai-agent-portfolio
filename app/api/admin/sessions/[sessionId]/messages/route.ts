@@ -1,14 +1,8 @@
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
-import { db } from "@/lib/db/helpers";
+import { db } from "@/lib/db";
 import { chatMessages } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-
-async function isAuthenticated() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token");
-  return token?.value === process.env.ADMIN_PASSWORD;
-}
+import { isAuthenticated } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,

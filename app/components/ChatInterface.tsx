@@ -206,14 +206,8 @@ export default function ChatInterface() {
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
     let recognitionLang = "en-US";
     if (lastUserMessage) {
-      // Simple French detection on last message
-      const frenchWords = ["je", "tu", "il", "elle", "nous", "vous", "est", "sont",
-        "que", "qui", "quoi", "comment", "pourquoi", "bonjour", "merci", "oui",
-        "non", "avec", "pour", "dans", "sur", "les", "des", "une", "parle",
-        "quel", "quelle", "quels", "peux", "peut", "veux", "mais", "aussi"];
-      const words = lastUserMessage.content.toLowerCase().split(/\s+/);
-      const frenchCount = words.filter((w) => frenchWords.includes(w.replace(/[^a-zàâäéèêëîïôùûüç]/g, ""))).length;
-      if (frenchCount > 0) recognitionLang = "fr-FR";
+      // Same heuristic the server uses, so the mic and the agent never disagree
+      recognitionLang = detectLanguage(lastUserMessage.content) === "fr" ? "fr-FR" : "en-US";
     } else {
       // No messages yet — use browser language
       const browserLang = navigator.language || "en-US";

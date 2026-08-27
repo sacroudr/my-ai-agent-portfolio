@@ -67,8 +67,11 @@ Respond ONLY with a JSON array of 3 strings, no other text:
       return parsed.map((q: string) => String(q).trim());
     }
     return [];
-  } catch {
-    // Follow-ups are non-critical — fail silently
+  } catch (err) {
+    // Follow-ups are non-critical — never surfaced to the user. Logged so a
+    // permanent breakage (model rename, prompt drift, malformed JSON) can't
+    // sit invisible in production.
+    console.error("[/api/chat] generateFollowUps failed:", err);
     return [];
   }
 }
@@ -103,8 +106,19 @@ export async function POST(req: NextRequest) {
     const userQuery = lastMessage.content as string;
     const language: "fr" | "en" = detectLanguage(userQuery);
 
-    const isNewSession = await getOrCreateSession(sessionId, language);
-    await logMessage({ sessionId, role: "user", content: userQuery, language });
+    // Conversation logging must never block the answer. A DB write failure
+    // costs an analytics row — it must not cost the recruiter their reply.
+    // sessionReady gates the assistant-side log below: without a session row,
+    // that insert would fail the foreign key and kill an otherwise-good stream.
+    let isNewSession = false;
+    let sessionReady = false;
+    try {
+      isNewSession = await getOrCreateSession(sessionId, language);
+      sessionReady = true;
+      await logMessage({ sessionId, role: "user", content: userQuery, language });
+    } catch (err) {
+      console.error("[/api/chat] Conversation logging failed, continuing without it:", err);
+    }
 
     // Fire notification email for new sessions — non-blocking
     if (isNewSession) {
@@ -139,17 +153,25 @@ export async function POST(req: NextRequest) {
 
     let fullResponse = "";
 
+    // Hoisted so cancel() can abort the in-flight model call when the client
+    // disconnects — otherwise Claude keeps generating (and billing) tokens
+    // that nobody will ever read.
+    let claudeStream: ReturnType<typeof anthropic.messages.stream> | null = null;
+
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
         try {
           // --- Main response stream ---
-          const claudeStream = anthropic.messages.stream({
-            model: "claude-haiku-4-5",
-            max_tokens: 2048,
-            system: systemPrompt,
-            messages: claudeMessages,
-          });
+          claudeStream = anthropic.messages.stream(
+            {
+              model: "claude-haiku-4-5",
+              max_tokens: 2048,
+              system: systemPrompt,
+              messages: claudeMessages,
+            },
+            { signal: req.signal }
+          );
 
           for await (const chunk of claudeStream) {
             if (
@@ -167,10 +189,18 @@ export async function POST(req: NextRequest) {
           const finalMessage = await claudeStream.finalMessage();
           const tokensUsed = finalMessage.usage.input_tokens + finalMessage.usage.output_tokens;
 
-          await logMessage({
-            sessionId, role: "assistant",
-            content: fullResponse, language, tokensUsed,
-          });
+          // Same rule as the user-side log: a logging failure must not error a
+          // stream whose answer already reached the client.
+          if (sessionReady) {
+            try {
+              await logMessage({
+                sessionId, role: "assistant",
+                content: fullResponse, language, tokensUsed,
+              });
+            } catch (err) {
+              console.error("[/api/chat] Failed to log assistant message:", err);
+            }
+          }
 
           // Signal end of main stream
           controller.enqueue(encoder.encode(`d:{"finishReason":"stop"}\n`));
@@ -195,6 +225,12 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           controller.error(err);
         }
+      },
+
+      cancel() {
+        // Client went away (tab closed, navigation, abort). Stop the model
+        // call immediately instead of generating tokens into a dead socket.
+        claudeStream?.abort();
       },
     });
 

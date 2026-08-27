@@ -1,6 +1,5 @@
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
 import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
 
 const TOP_K = 4; // Number of chunks to retrieve per query
 
@@ -18,9 +17,6 @@ export interface RetrievedChunk {
 export async function retrieveRelevantChunks(
   queryEmbedding: number[]
 ): Promise<RetrievedChunk[]> {
-  const db_sql = neon(process.env.DATABASE_URL!);
-  const db = drizzle(db_sql);
-
   // Format the embedding as a pgvector literal string: '[0.1,0.2,...]'
   const vectorLiteral = `[${queryEmbedding.join(",")}]`;
 

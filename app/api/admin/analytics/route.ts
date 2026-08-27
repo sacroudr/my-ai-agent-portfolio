@@ -1,12 +1,6 @@
-import { cookies } from "next/headers";
-import { db } from "@/lib/db/helpers";
+import { db } from "@/lib/db";
 import { chatSessions, chatMessages } from "@/lib/db/schema";
-
-async function isAuthenticated() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token");
-  return token?.value === process.env.ADMIN_PASSWORD;
-}
+import { isAuthenticated } from "@/lib/auth";
 
 // Phrases the agent uses when it doesn't know something
 const UNANSWERED_SIGNALS = [
